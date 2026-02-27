@@ -1,0 +1,20 @@
+# ASP.NET
+bin/
+obj/
+.vs/
+
+# Angular
+node_modules/
+dist/
+.angular/cache/
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# OS
+Thumbs.db
+.DS_Store
