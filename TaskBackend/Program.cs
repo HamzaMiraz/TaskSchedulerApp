@@ -1,9 +1,14 @@
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer(); // REQUIRED
 builder.Services.AddSwaggerGen(); // REQUIRED
+
+builder.Services.AddDbContext<TaskBackend.Data.AppDbContext>(options =>
+    options.UseInMemoryDatabase("TaskTrackerDb"));
 
 builder.Services.AddCors(options =>
 {
@@ -14,6 +19,19 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<TaskBackend.Data.AppDbContext>();
+    if (!db.Tasks.Any())
+    {
+        db.Tasks.AddRange(
+            new TaskBackend.Models.TodoTask { Title = "Learn ASP.NET Core", IsCompleted = false },
+            new TaskBackend.Models.TodoTask { Title = "Build an Angular App", IsCompleted = false }
+        );
+        db.SaveChanges();
+    }
+}
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())

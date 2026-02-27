@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using TaskBackend.Data;
 using TaskBackend.Models;
 
 namespace TaskBackend.Controllers;
@@ -7,45 +9,54 @@ namespace TaskBackend.Controllers;
 [Route("api/[Controller]")] // This makes the URL: api/tasks
 public class TasksController : ControllerBase
 {
-    // Temporary "In-Memory" storage
-    private static List<TodoTask> _tasks = new List<TodoTask>
+    private readonly AppDbContext _db;
+
+    public TasksController(AppDbContext db)
     {
-        new TodoTask { Id = 1, Title = "Learn ASP.NET Core", IsCompleted = false },
-        new TodoTask { Id = 2, Title = "Build an Angular App", IsCompleted = false }
-    };
+        _db = db;
+    }
 
     // GET: api/tasks
     [HttpGet]
-    public ActionResult<IEnumerable<TodoTask>> GetTasks()
+    public async Task<ActionResult<IEnumerable<TodoTask>>> GetTasks()
     {
-        return Ok(_tasks);
+        var tasks = await _db.Tasks.OrderByDescending(t => t.CreatedAt).ToListAsync();
+        return Ok(tasks);
     }
 
     [HttpGet("{id}")]
-    public ActionResult<TodoTask> GetTask(int id)
+    public async Task<ActionResult<TodoTask>> GetTask(int id)
     {
-        var task = _tasks.FirstOrDefault(t => t.Id == id);
+        var task = await _db.Tasks.FindAsync(id);
         if (task == null) return NotFound();
         return Ok(task);
     }
 
     // POST: api/tasks
     [HttpPost]
-    public ActionResult<TodoTask> CreateTask(TodoTask newTask)
+    public async Task<ActionResult<TodoTask>> CreateTask(TodoTask newTask)
     {
-        newTask.Id = _tasks.Count > 0 ? _tasks.Max(t => t.Id) + 1 : 1;
-        _tasks.Add(newTask);
-        return CreatedAtAction(nameof(GetTasks), new { id = newTask.Id }, newTask);
+        newTask.Id = 0;
+        if (newTask.CreatedAt == default)
+        {
+            newTask.CreatedAt = DateTime.Now;
+        }
+
+        _db.Tasks.Add(newTask);
+        await _db.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(GetTask), new { id = newTask.Id }, newTask);
     }
 
     // DELETE: api/tasks/1
     [HttpDelete("{id}")]
-    public IActionResult DeleteTask(int id)
+    public async Task<IActionResult> DeleteTask(int id)
     {
-        var task = _tasks.FirstOrDefault(t => t.Id == id);
+        var task = await _db.Tasks.FindAsync(id);
         if (task == null) return NotFound();
 
-        _tasks.Remove(task);
+        _db.Tasks.Remove(task);
+        await _db.SaveChangesAsync();
         return NoContent();
     }
 
