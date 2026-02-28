@@ -47,59 +47,78 @@ import { AuthService } from './auth.service';
         </div>
       </header>
 
+      <div
+        *ngIf="!isLoggedIn"
+        style="flex: 1; display: flex; align-items: center; justify-content: center;"
+      >
+        <div
+          style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); padding: 40px; border-radius: 32px; width: 100%; max-width: 400px; backdrop-filter: blur(20px); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);"
+        >
+          <h2
+            style="text-align: center; margin-bottom: 30px; font-weight: 800; letter-spacing: -1px;"
+          >
+            {{ mode === 'login' ? 'Welcome Back' : 'Create Account' }}
+          </h2>
+
+          <div
+            style="display: flex; gap: 10px; margin-bottom: 25px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 14px;"
+          >
+            <button
+              (click)="mode = 'login'"
+              [style.background]="
+                mode === 'login' ? 'linear-gradient(135deg, #3b82f6, #8b5cf6)' : 'transparent'
+              "
+              style="flex: 1; border: none; padding: 12px; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; transition: 0.3s;"
+            >
+              Login
+            </button>
+            <button
+              (click)="mode = 'register'"
+              [style.background]="
+                mode === 'register' ? 'linear-gradient(135deg, #3b82f6, #8b5cf6)' : 'transparent'
+              "
+              style="flex: 1; border: none; padding: 12px; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; transition: 0.3s;"
+            >
+              Join
+            </button>
+          </div>
+
+          <input
+            [(ngModel)]="userName"
+            placeholder="Username"
+            style="width: 100%; padding: 16px; margin-bottom: 15px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; color: white; outline: none; box-sizing: border-box;"
+          />
+          <input
+            [(ngModel)]="password"
+            type="password"
+            (keyup.enter)="mode === 'login' ? doLogin() : doRegister()"
+            placeholder="Password"
+            style="width: 100%; padding: 16px; margin-bottom: 25px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; color: white; outline: none; box-sizing: border-box;"
+          />
+
+          <button
+            (click)="mode === 'login' ? doLogin() : doRegister()"
+            style="width: 100%; padding: 16px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; border: none; border-radius: 14px; font-weight: bold; cursor: pointer; font-size: 16px; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);"
+          >
+            {{ mode === 'login' ? 'Sign In' : 'Create Account' }}
+          </button>
+
+          <p
+            *ngIf="message"
+            [style.color]="messageType === 'error' ? '#f87171' : '#4ade80'"
+            style="font-size: 13px; margin-top: 20px; text-align: center;"
+          >
+            {{ message }}
+          </p>
+        </div>
+      </div>
+
       <main
+        *ngIf="isLoggedIn"
         style="display: grid; grid-template-columns: 1fr 2.5fr; gap: 30px; max-width: 1300px; margin: 0 auto; width: 100%;"
       >
         <section>
           <div
-            *ngIf="!isLoggedIn"
-            style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); padding: 30px; border-radius: 24px;"
-          >
-            <div style="display: flex; gap: 10px; margin-bottom: 25px;">
-              <button
-                (click)="mode = 'login'"
-                [style.background]="mode === 'login' ? '#3b82f6' : 'transparent'"
-                style="flex: 1; border: none; padding: 10px; border-radius: 10px; color: white; cursor: pointer;"
-              >
-                Login
-              </button>
-              <button
-                (click)="mode = 'register'"
-                [style.background]="mode === 'register' ? '#3b82f6' : 'transparent'"
-                style="flex: 1; border: none; padding: 10px; border-radius: 10px; color: white; cursor: pointer;"
-              >
-                Join
-              </button>
-            </div>
-            <input
-              [(ngModel)]="userName"
-              placeholder="Username"
-              style="width: 100%; padding: 14px; margin-bottom: 12px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; outline: none;"
-            />
-            <input
-              [(ngModel)]="password"
-              type="password"
-              (keyup.enter)="mode === 'login' ? doLogin() : doRegister()"
-              placeholder="Password"
-              style="width: 100%; padding: 14px; margin-bottom: 20px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; outline: none;"
-            />
-            <button
-              (click)="mode === 'login' ? doLogin() : doRegister()"
-              style="width: 100%; padding: 14px; background: #3b82f6; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer;"
-            >
-              {{ mode === 'login' ? 'Sign In' : 'Create Account' }}
-            </button>
-            <p
-              *ngIf="message"
-              [style.color]="messageType === 'error' ? '#f87171' : '#4ade80'"
-              style="font-size: 13px; margin-top: 15px; text-align: center;"
-            >
-              {{ message }}
-            </p>
-          </div>
-
-          <div
-            *ngIf="isLoggedIn"
             style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1)); border: 1px solid rgba(255, 255, 255, 0.1); padding: 30px; border-radius: 24px; text-align: center;"
           >
             <h3 style="margin: 0; color: #94a3b8; font-size: 14px;">Productivity Score</h3>
@@ -118,15 +137,13 @@ import { AuthService } from './auth.service';
           <div style="margin-bottom: 30px; display: flex; gap: 15px;">
             <input
               [(ngModel)]="newTaskTitle"
-              [disabled]="!isLoggedIn"
               placeholder="Enter task and press enter..."
               (keyup.enter)="saveTask()"
               style="flex: 1; padding: 16px 25px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: white; font-size: 16px; outline: none;"
             />
             <button
               (click)="saveTask()"
-              [disabled]="!isLoggedIn"
-              style="background: #3b82f6; color: white; border: none; padding: 0 25px; border-radius: 20px; font-weight: 600; cursor: pointer;"
+              style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; border: none; padding: 0 25px; border-radius: 20px; font-weight: 600; cursor: pointer;"
             >
               Add Task
             </button>
@@ -225,7 +242,6 @@ export class App implements OnInit {
   message: string = '';
   messageType: 'error' | 'success' = 'success';
 
-  // Editor State Logic
   editingId: number | null = null;
   editTitle: string = '';
 
@@ -294,7 +310,6 @@ export class App implements OnInit {
     });
   }
 
-  // --- EDITOR FUNCTIONS ---
   startEdit(t: TodoTask) {
     if (!this.isLoggedIn) return;
     this.editingId = t.id ?? null;
@@ -328,7 +343,6 @@ export class App implements OnInit {
     this.service.deleteTask(id).subscribe(() => this.load());
   }
 
-  // --- TIME AND DATE FORMATTING ---
   formatCreatedAt(dateString?: string): string {
     if (!dateString) return 'Just now';
     const date = new Date(dateString);
@@ -344,5 +358,3 @@ export class App implements OnInit {
     }).format(date);
   }
 }
-
-/// new ui
