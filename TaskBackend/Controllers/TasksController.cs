@@ -48,6 +48,16 @@ public class TasksController : ControllerBase
         return CreatedAtAction(nameof(GetTask), new { id = newTask.Id }, newTask);
     }
 
+    // UPDATE: api/tasks/1
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateTask(int id, TodoTask updatedTask)
+    {
+        if (id != updatedTask.Id) return BadRequest();
+        _db.Entry(updatedTask).State = EntityState.Modified;
+        await _db.SaveChangesAsync();
+        return NoContent();
+    }
+
     // DELETE: api/tasks/1
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteTask(int id)

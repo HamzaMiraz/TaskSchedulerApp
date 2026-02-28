@@ -34,15 +34,55 @@ import { TaskService, TodoTask } from './task.service';
 
       <div
         *ngFor="let t of tasks"
-        style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee;"
+        style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; gap: 8px;"
       >
-        <span [style.text-decoration]="t.isCompleted ? 'line-through' : 'none'">{{ t.title }}</span>
-        <button
-          (click)="removeTask(t.id!)"
-          style="background: #dc3545; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer;"
-        >
-          Delete
-        </button>
+        <input
+          type="checkbox"
+          [checked]="t.isCompleted"
+          (change)="toggleComplete(t)"
+          style="cursor: pointer; flex-shrink: 0;"
+          title="Mark complete / incomplete"
+        />
+        @if (editingId === t.id) {
+          <input
+            [(ngModel)]="editTitle"
+            (keyup.enter)="saveEdit()"
+            (keyup.escape)="cancelEdit()"
+            style="flex: 1; padding: 6px 8px; border: 1px solid #007bff; border-radius: 4px;"
+          />
+          <button
+            (click)="saveEdit()"
+            style="background: #007bff; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer;"
+          >
+            Save
+          </button>
+          <button
+            (click)="cancelEdit()"
+            style="background: #6c757d; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer;"
+          >
+            Cancel
+          </button>
+        } @else {
+          <span
+            (click)="startEdit(t)"
+            [style.text-decoration]="t.isCompleted ? 'line-through' : 'none'"
+            [style.color]="t.isCompleted ? '#888' : 'inherit'"
+            style="flex: 1; text-align: left; cursor: pointer;"
+            title="Click to edit"
+          >{{ t.title }}</span>
+          <button
+            (click)="startEdit(t)"
+            style="background: #ffc107; color: #333; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer;"
+          >
+            Edit
+          </button>
+          <button
+            (click)="removeTask(t.id!)"
+            style="background: #dc3545; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer;"
+          >
+            Delete
+          </button>
+        }
       </div>
     </div>
   `,
@@ -50,6 +90,8 @@ import { TaskService, TodoTask } from './task.service';
 export class App implements OnInit {
   tasks: TodoTask[] = [];
   newTaskTitle: string = '';
+  editingId: number | null = null;
+  editTitle: string = '';
 
   constructor(private service: TaskService) {}
 
@@ -74,16 +116,58 @@ export class App implements OnInit {
       isCompleted: false,
     };
 
-    this.service.addTask(newTask).subscribe(() => {
-      this.newTaskTitle = ''; // Clear input
-      this.load(); // Refresh list
+    this.service.addTask(newTask).subscribe({
+      next: () => {
+        this.newTaskTitle = '';
+        this.load();
+      },
+      error: (err) => alert('Failed to add task.'),
     });
+  }
+
+  // Toggle task complete/incomplete (PUT)
+  toggleComplete(t: TodoTask) {
+    const updated = { ...t, isCompleted: !t.isCompleted };
+    this.service.updateTask(updated).subscribe({
+      next: () => this.load(),
+      error: () => alert('Failed to update task.'),
+    });
+  }
+
+  // Start editing task title
+  startEdit(t: TodoTask) {
+    this.editingId = t.id ?? null;
+    this.editTitle = t.title;
+  }
+
+  // Save edited title (PUT)
+  saveEdit() {
+    if (this.editingId == null) return;
+    const task = this.tasks.find((x) => x.id === this.editingId);
+    if (!task || !this.editTitle.trim()) {
+      this.cancelEdit();
+      return;
+    }
+    const updated = { ...task, title: this.editTitle.trim() };
+    this.service.updateTask(updated).subscribe({
+      next: () => {
+        this.load();
+        this.editingId = null;
+        this.editTitle = '';
+      },
+      error: () => alert('Failed to update task.'),
+    });
+  }
+
+  cancelEdit() {
+    this.editingId = null;
+    this.editTitle = '';
   }
 
   // Delete task from C# API
   removeTask(id: number) {
     this.service.deleteTask(id).subscribe(() => {
-      this.load(); // Refresh list
+      this.load();
     });
   }
 }
