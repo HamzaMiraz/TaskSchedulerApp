@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using TaskBackend.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,19 +21,6 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<TaskBackend.Data.AppDbContext>();
-    if (!db.Tasks.Any())
-    {
-        db.Tasks.AddRange(
-            new TaskBackend.Models.TodoTask { Title = "Learn ASP.NET Core", IsCompleted = false },
-            new TaskBackend.Models.TodoTask { Title = "Build an Angular App", IsCompleted = false }
-        );
-        db.SaveChanges();
-    }
-}
-
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
@@ -43,6 +31,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors("AllowAngular");
+app.UseMiddleware<AuthMiddleware>();
 
 var summaries = new[]
 {

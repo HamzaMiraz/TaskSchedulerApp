@@ -20,14 +20,26 @@ public class TasksController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<TodoTask>>> GetTasks()
     {
-        var tasks = await _db.Tasks.OrderByDescending(t => t.CreatedAt).ToListAsync();
+        var userId = GetUserIdOrNull();
+        if (userId == null) return Unauthorized(new { message = "Not logged in." });
+
+        var tasks = await _db.Tasks
+            .AsNoTracking()
+            .Where(t => t.UserId == userId.Value)
+            .OrderByDescending(t => t.CreatedAt)
+            .ToListAsync();
         return Ok(tasks);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<TodoTask>> GetTask(int id)
     {
-        var task = await _db.Tasks.FindAsync(id);
+        var userId = GetUserIdOrNull();
+        if (userId == null) return Unauthorized(new { message = "Not logged in." });
+
+        var task = await _db.Tasks
+            .AsNoTracking()
+            .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId.Value);
         if (task == null) return NotFound();
         return Ok(task);
     }
@@ -36,10 +48,14 @@ public class TasksController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<TodoTask>> CreateTask(TodoTask newTask)
     {
+        var userId = GetUserIdOrNull();
+        if (userId == null) return Unauthorized(new { message = "Not logged in." });
+
         newTask.Id = 0;
+        newTask.UserId = userId.Value;
         if (newTask.CreatedAt == default)
         {
-            newTask.CreatedAt = DateTime.Now;
+            newTask.CreatedAt = DateTime.UtcNow;
         }
 
         _db.Tasks.Add(newTask);
@@ -52,8 +68,15 @@ public class TasksController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateTask(int id, TodoTask updatedTask)
     {
+        var userId = GetUserIdOrNull();
+        if (userId == null) return Unauthorized(new { message = "Not logged in." });
         if (id != updatedTask.Id) return BadRequest();
-        _db.Entry(updatedTask).State = EntityState.Modified;
+
+        var existing = await _db.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId.Value);
+        if (existing == null) return NotFound();
+
+        existing.Title = updatedTask.Title ?? string.Empty;
+        existing.IsCompleted = updatedTask.IsCompleted;
         await _db.SaveChangesAsync();
         return NoContent();
     }
@@ -62,7 +85,10 @@ public class TasksController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteTask(int id)
     {
-        var task = await _db.Tasks.FindAsync(id);
+        var userId = GetUserIdOrNull();
+        if (userId == null) return Unauthorized(new { message = "Not logged in." });
+
+        var task = await _db.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId.Value);
         if (task == null) return NotFound();
 
         _db.Tasks.Remove(task);
@@ -70,4 +96,10 @@ public class TasksController : ControllerBase
         return NoContent();
     }
 
+    private int? GetUserIdOrNull()
+    {
+        if (HttpContext.Items.TryGetValue("UserId", out var v) && v is int userId)
+            return userId;
+        return null;
+    }
 }
