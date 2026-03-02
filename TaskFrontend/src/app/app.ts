@@ -34,6 +34,65 @@ import { AuthService } from './auth.service';
         </div>
 
         <div *ngIf="isLoggedIn" style="display: flex; align-items: center; gap: 20px;">
+          <!-- NOTIFICATION BELL -->
+          <div style="position: relative;">
+            <button
+              (click)="toggleNotifications()"
+              style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); width: 42px; height: 42px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative; font-size: 20px;"
+            >
+              🔔
+              <div
+                *ngIf="pastDueTasks.length > 0"
+                style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 11px; font-weight: bold; display: flex; align-items: center; justify-content: center; border: 2px solid #0f172a; box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);"
+              >
+                {{ pastDueTasks.length }}
+              </div>
+            </button>
+
+            <!-- NOTIFICATION DROPDOWN -->
+            <div
+              *ngIf="showNotifications"
+              style="position: absolute; top: 55px; right: 0; width: 320px; background: #1e293b; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4); z-index: 1000; overflow: hidden; animation: slideDown 0.2s ease-out;"
+            >
+              <div style="padding: 15px 20px; background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid rgba(255, 255, 255, 0.05); display: flex; justify-content: space-between; align-items: center;">
+                <h4 style="margin: 0; font-size: 14px; font-weight: 600;">Past Due Tasks</h4>
+                <span style="font-size: 11px; color: #64748b;">Action Required</span>
+              </div>
+              
+              <div style="max-height: 400px; overflow-y: auto;">
+                <div *ngIf="pastDueTasks.length === 0" style="padding: 30px; text-align: center; color: #64748b;">
+                  <p style="font-size: 24px; margin: 0 0 10px 0;">🎉</p>
+                  <p style="font-size: 12px; margin: 0;">No tasks crossed their deadline.</p>
+                </div>
+
+                <div
+                  *ngFor="let t of pastDueTasks"
+                  style="padding: 15px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.03); background: rgba(239, 68, 68, 0.03);"
+                >
+                  <div style="margin-bottom: 10px;">
+                    <p style="margin: 0; font-size: 14px; font-weight: 500; color: #f8fafc;">{{ t.title }}</p>
+                    <p style="margin: 4px 0 0 0; font-size: 11px; color: #f87171;">⏳ Deadline: {{ formatCreatedAt(t.deadline) }}</p>
+                  </div>
+                  
+                  <div style="display: flex; gap: 8px;">
+                    <button
+                      (click)="handleExtendNotification(t)"
+                      style="flex: 1; padding: 6px; background: #0ea5e9; border: none; border-radius: 8px; color: white; font-size: 11px; font-weight: 600; cursor: pointer;"
+                    >
+                      Extend
+                    </button>
+                    <button
+                      (click)="removeTask(t.id!)"
+                      style="padding: 6px 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px; color: #ef4444; font-size: 11px; cursor: pointer;"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div style="text-align: right;">
             <p style="margin: 0; font-size: 12px; color: #94a3b8;">User</p>
             <p style="margin: 0; font-weight: 600; color: #3b82f6;">{{ loggedInUserName }}</p>
@@ -46,22 +105,6 @@ import { AuthService } from './auth.service';
           </button>
         </div>
       </header>
-
-      <!-- NOTIFICATION BAR -->
-      <div
-        *ngIf="isLoggedIn && pastDueTasks.length > 0"
-        style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 16px; padding: 15px 25px; margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between; animation: slideDown 0.3s ease-out;"
-      >
-        <div style="display: flex; align-items: center; gap: 15px;">
-          <div style="background: rgba(239,68,68,0.2); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px;">
-            ⚠️
-          </div>
-          <div>
-            <h4 style="margin: 0; color: #f87171; font-size: 15px;">Tasks Past Deadline</h4>
-            <p style="margin: 0; color: #fca5a5; font-size: 12px;">You have {{ pastDueTasks.length }} task(s) that require immediate attention.</p>
-          </div>
-        </div>
-      </div>
 
       <div
         *ngIf="!isLoggedIn"
@@ -293,6 +336,7 @@ export class App implements OnInit {
   password: string = '';
   message: string = '';
   messageType: 'error' | 'success' = 'success';
+  showNotifications: boolean = false;
 
   editingId: number | null = null;
   editTitle: string = '';
@@ -332,6 +376,15 @@ export class App implements OnInit {
     if (!t.deadline || t.isCompleted) return false;
     const deadlineDate = new Date(t.deadline);
     return deadlineDate.getTime() < new Date().getTime();
+  }
+
+  toggleNotifications() {
+    this.showNotifications = !this.showNotifications;
+  }
+
+  handleExtendNotification(t: TodoTask) {
+    this.showNotifications = false;
+    this.startEdit(t);
   }
 
   load() {
