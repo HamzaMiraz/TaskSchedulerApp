@@ -58,6 +58,15 @@ public class TasksController : ControllerBase
             newTask.CreatedAt = DateTime.UtcNow;
         }
 
+        if (newTask.Deadline.HasValue)
+        {
+            var userTime = newTask.Deadline.Value;
+            if (userTime <= DateTime.UtcNow)
+            {
+                return BadRequest("Deadline must be in the future.");
+            }
+        }
+
         _db.Tasks.Add(newTask);
         await _db.SaveChangesAsync();
 
@@ -75,8 +84,19 @@ public class TasksController : ControllerBase
         var existing = await _db.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId.Value);
         if (existing == null) return NotFound();
 
+        if (updatedTask.Deadline.HasValue)
+        {
+            var userTime = updatedTask.Deadline.Value;
+            if (userTime <= DateTime.UtcNow)
+            {
+                return BadRequest("Deadline must be in the future.");
+            }
+        }
+
         existing.Title = updatedTask.Title ?? string.Empty;
         existing.IsCompleted = updatedTask.IsCompleted;
+        existing.Deadline = updatedTask.Deadline;
+        
         await _db.SaveChangesAsync();
         return NoContent();
     }
@@ -103,3 +123,4 @@ public class TasksController : ControllerBase
         return null;
     }
 }
+

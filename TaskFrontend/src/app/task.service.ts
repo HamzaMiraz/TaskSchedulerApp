@@ -8,6 +8,7 @@ export interface TodoTask {
   title: string;
   isCompleted: boolean;
   createdAt?: string;
+  deadline?: string;
 }
 
 @Injectable({
@@ -17,7 +18,7 @@ export class TaskService {
   // Your Backend Port is 5112
   private apiUrl = 'http://localhost:5112/api/tasks';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getTasks(): Observable<TodoTask[]> {
     return this.http.get<TodoTask[]>(this.apiUrl);

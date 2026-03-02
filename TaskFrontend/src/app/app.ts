@@ -17,7 +17,7 @@ import { AuthService } from './auth.service';
       >
         <div style="display: flex; align-items: center; gap: 15px;">
           <div
-            style="width: 45px; height: 45px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 22px; box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);"
+            style="width: 45px; height: 45px; background: linear-gradient(135deg, #0ea5e9, #6366f1); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 22px; box-shadow: 0 0 20px rgba(14, 165, 233, 0.4);"
           >
             T
           </div>
@@ -47,6 +47,22 @@ import { AuthService } from './auth.service';
         </div>
       </header>
 
+      <!-- NOTIFICATION BAR -->
+      <div
+        *ngIf="isLoggedIn && pastDueTasks.length > 0"
+        style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 16px; padding: 15px 25px; margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between; animation: slideDown 0.3s ease-out;"
+      >
+        <div style="display: flex; align-items: center; gap: 15px;">
+          <div style="background: rgba(239,68,68,0.2); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+            ⚠️
+          </div>
+          <div>
+            <h4 style="margin: 0; color: #f87171; font-size: 15px;">Tasks Past Deadline</h4>
+            <p style="margin: 0; color: #fca5a5; font-size: 12px;">You have {{ pastDueTasks.length }} task(s) that require immediate attention.</p>
+          </div>
+        </div>
+      </div>
+
       <div
         *ngIf="!isLoggedIn"
         style="flex: 1; display: flex; align-items: center; justify-content: center;"
@@ -66,7 +82,7 @@ import { AuthService } from './auth.service';
             <button
               (click)="mode = 'login'"
               [style.background]="
-                mode === 'login' ? 'linear-gradient(135deg, #3b82f6, #8b5cf6)' : 'transparent'
+                mode === 'login' ? 'linear-gradient(135deg, #0ea5e9, #6366f1)' : 'transparent'
               "
               style="flex: 1; border: none; padding: 12px; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; transition: 0.3s;"
             >
@@ -75,11 +91,11 @@ import { AuthService } from './auth.service';
             <button
               (click)="mode = 'register'"
               [style.background]="
-                mode === 'register' ? 'linear-gradient(135deg, #3b82f6, #8b5cf6)' : 'transparent'
+                mode === 'register' ? 'linear-gradient(135deg, #0ea5e9, #6366f1)' : 'transparent'
               "
               style="flex: 1; border: none; padding: 12px; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; transition: 0.3s;"
             >
-              Join
+              Register Account
             </button>
           </div>
 
@@ -98,7 +114,7 @@ import { AuthService } from './auth.service';
 
           <button
             (click)="mode === 'login' ? doLogin() : doRegister()"
-            style="width: 100%; padding: 16px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; border: none; border-radius: 14px; font-weight: bold; cursor: pointer; font-size: 16px; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);"
+            style="width: 100%; padding: 16px; background: linear-gradient(135deg, #0ea5e9, #6366f1); color: white; border: none; border-radius: 14px; font-weight: bold; cursor: pointer; font-size: 16px; box-shadow: 0 10px 20px rgba(14, 165, 233, 0.3);"
           >
             {{ mode === 'login' ? 'Sign In' : 'Create Account' }}
           </button>
@@ -123,7 +139,7 @@ import { AuthService } from './auth.service';
           >
             <h3 style="margin: 0; color: #94a3b8; font-size: 14px;">Productivity Score</h3>
             <div
-              style="font-size: 48px; font-weight: 800; margin: 15px 0; background: linear-gradient(to right, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"
+              style="font-size: 48px; font-weight: 800; margin: 15px 0; background: linear-gradient(to right, #0ea5e9, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"
             >
               {{ tasks.length }}
             </div>
@@ -141,9 +157,15 @@ import { AuthService } from './auth.service';
               (keyup.enter)="saveTask()"
               style="flex: 1; padding: 16px 25px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: white; font-size: 16px; outline: none;"
             />
+            <input
+              type="datetime-local"
+              [(ngModel)]="newTaskDeadline"
+              [min]="minDateTime"
+              style="padding: 16px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: #94a3b8; font-size: 14px; outline: none; font-family: inherit;"
+            />
             <button
               (click)="saveTask()"
-              style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; border: none; padding: 0 25px; border-radius: 20px; font-weight: 600; cursor: pointer;"
+              style="background: linear-gradient(135deg, #0ea5e9, #6366f1); color: white; border: none; padding: 0 25px; border-radius: 20px; font-weight: 600; cursor: pointer;"
             >
               Add Task
             </button>
@@ -169,10 +191,25 @@ import { AuthService } from './auth.service';
                   (keyup.escape)="cancelEdit()"
                   style="width: 100%; background: #0f172a; border: 1px solid #3b82f6; padding: 8px 12px; border-radius: 8px; color: white; outline: none; margin-bottom: 5px;"
                 />
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                  <input
+                    type="datetime-local"
+                    [(ngModel)]="editDeadline"
+                    [min]="minDateTime"
+                    style="flex: 1; background: #0f172a; border: 1px solid rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 8px; color: #94a3b8; outline: none; font-size: 12px;"
+                  />
+                  <button
+                    *ngIf="editDeadline"
+                    (click)="clearEditDeadline()"
+                    style="background: transparent; border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; padding: 0 10px; border-radius: 8px; font-size: 11px; cursor: pointer;"
+                  >
+                    Clear Deadline
+                  </button>
+                </div>
                 <div style="display: flex; gap: 10px;">
                   <button
                     (click)="saveEdit()"
-                    style="background: #3b82f6; border: none; color: white; padding: 4px 12px; border-radius: 6px; font-size: 11px; cursor: pointer;"
+                    style="background: #0ea5e9; border: none; color: white; padding: 4px 12px; border-radius: 6px; font-size: 11px; cursor: pointer;"
                   >
                     Save
                   </button>
@@ -194,11 +231,20 @@ import { AuthService } from './auth.service';
                 >
                   {{ t.title }}
                 </p>
-                <span
-                  style="font-size: 11px; color: #475569; display: flex; align-items: center; gap: 5px; margin-top: 4px;"
-                >
-                  🕒 Created: {{ formatCreatedAt(t.createdAt) }}
-                </span>
+                <div style="display: flex; align-items: center; gap: 15px; margin-top: 4px;">
+                  <span style="font-size: 11px; color: #475569; display: flex; align-items: center; gap: 5px;">
+                    🕒 Created: {{ formatCreatedAt(t.createdAt) }}
+                  </span>
+                  
+                  <span
+                    *ngIf="t.deadline"
+                    [style.color]="isPastDue(t) ? '#f87171' : '#fbbf24'"
+                    style="font-size: 11px; display: flex; align-items: center; gap: 5px; font-weight: 600;"
+                  >
+                    ⏳ Deadline: {{ formatCreatedAt(t.deadline) }}
+                    <span *ngIf="isPastDue(t)">(Past Due)</span>
+                  </span>
+                </div>
               </ng-template>
             </div>
 
@@ -229,6 +275,12 @@ import { AuthService } from './auth.service';
         </section>
       </main>
     </div>
+    <style>
+      @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    </style>
   `,
 })
 export class App implements OnInit {
@@ -244,16 +296,42 @@ export class App implements OnInit {
 
   editingId: number | null = null;
   editTitle: string = '';
+  editDeadline: string = '';
+
+  newTaskDeadline: string = '';
+  minDateTime: string = '';
 
   constructor(
     private service: TaskService,
     private auth: AuthService,
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.isLoggedIn = this.auth.isLoggedIn();
     this.loggedInUserName = this.auth.getUserName() ?? '';
+    this.updateMinDateTime();
+
+    // Periodically update minDateTime so it stays current
+    setInterval(() => this.updateMinDateTime(), 60000);
+
     if (this.isLoggedIn) this.load();
+  }
+
+  updateMinDateTime() {
+    const now = new Date();
+    // Format required for datetime-local: YYYY-MM-DDThh:mm
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    this.minDateTime = now.toISOString().slice(0, 16);
+  }
+
+  get pastDueTasks() {
+    return this.tasks.filter(t => this.isPastDue(t));
+  }
+
+  isPastDue(t: TodoTask): boolean {
+    if (!t.deadline || t.isCompleted) return false;
+    const deadlineDate = new Date(t.deadline);
+    return deadlineDate.getTime() < new Date().getTime();
   }
 
   load() {
@@ -304,8 +382,26 @@ export class App implements OnInit {
 
   saveTask() {
     if (!this.newTaskTitle.trim()) return;
-    this.service.addTask({ title: this.newTaskTitle, isCompleted: false }).subscribe(() => {
+
+    // Check if new task deadline is in the past natively as fallback
+    if (this.newTaskDeadline && new Date(this.newTaskDeadline).getTime() < new Date().getTime()) {
+      alert("Deadline must be in the future.");
+      return;
+    }
+
+    const newTask: TodoTask = {
+      title: this.newTaskTitle,
+      isCompleted: false
+    };
+
+    if (this.newTaskDeadline) {
+      // Ensure it's stored in ISO format
+      newTask.deadline = new Date(this.newTaskDeadline).toISOString();
+    }
+
+    this.service.addTask(newTask).subscribe(() => {
       this.newTaskTitle = '';
+      this.newTaskDeadline = '';
       this.load();
     });
   }
@@ -314,6 +410,19 @@ export class App implements OnInit {
     if (!this.isLoggedIn) return;
     this.editingId = t.id ?? null;
     this.editTitle = t.title;
+
+    if (t.deadline) {
+      const d = new Date(t.deadline);
+      // convert to local datetime-local string
+      d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+      this.editDeadline = d.toISOString().slice(0, 16);
+    } else {
+      this.editDeadline = '';
+    }
+  }
+
+  clearEditDeadline() {
+    this.editDeadline = '';
   }
 
   saveEdit() {
@@ -321,9 +430,22 @@ export class App implements OnInit {
       this.cancelEdit();
       return;
     }
+
+    if (this.editDeadline && new Date(this.editDeadline).getTime() < new Date().getTime()) {
+      alert("Deadline must be in the future.");
+      return;
+    }
+
     const task = this.tasks.find((t) => t.id === this.editingId);
     if (task) {
-      this.service.updateTask({ ...task, title: this.editTitle }).subscribe(() => {
+      const updatedTask = { ...task, title: this.editTitle };
+      if (this.editDeadline) {
+        updatedTask.deadline = new Date(this.editDeadline).toISOString();
+      } else {
+        updatedTask.deadline = undefined; // clear deadline
+      }
+
+      this.service.updateTask(updatedTask).subscribe(() => {
         this.load();
         this.cancelEdit();
       });
@@ -333,6 +455,7 @@ export class App implements OnInit {
   cancelEdit() {
     this.editingId = null;
     this.editTitle = '';
+    this.editDeadline = '';
   }
 
   toggleComplete(t: TodoTask) {
