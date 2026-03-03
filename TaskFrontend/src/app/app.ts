@@ -214,6 +214,27 @@ import { AuthService } from './auth.service';
             </button>
           </div>
 
+          <div 
+            *ngIf="tasks.length > 0"
+            style="margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; padding: 0 5px;"
+          >
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 10px; height: 10px; background: #3b82f6; border-radius: 3px; box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);"></div>
+              <span style="font-size: 13px; color: #94a3b8; font-weight: 500;">{{ tasks.length }} Tasks</span>
+            </div>
+            
+            <button 
+              (click)="toggleSort()"
+              style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #f8fafc; padding: 8px 16px; border-radius: 14px; cursor: pointer; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); outline: none; backdrop-filter: blur(4px);"
+              onmouseover="this.style.background='rgba(59, 130, 246, 0.1)'; this.style.borderColor='rgba(59, 130, 246, 0.3)'; this.style.transform='translateY(-1px)'"
+              onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.borderColor='rgba(255,255,255,0.1)'; this.style.transform='translateY(0)'"
+            >
+              <span style="font-size: 14px;">{{ sortByDeadline ? '⌛' : '🆕' }}</span>
+              <span>Sorted by: {{ sortByDeadline ? 'Deadline' : 'Newest' }}</span>
+            </button>
+          </div>
+
+
           <div
             *ngFor="let t of tasks"
             style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 15px; padding: 20px; border-radius: 20px; display: flex; align-items: center; gap: 18px;"
@@ -337,6 +358,7 @@ export class App implements OnInit {
   message: string = '';
   messageType: 'error' | 'success' = 'success';
   showNotifications: boolean = false;
+  sortByDeadline: boolean = true;
 
   editingId: number | null = null;
   editTitle: string = '';
@@ -389,9 +411,44 @@ export class App implements OnInit {
 
   load() {
     this.service.getTasks().subscribe({
-      next: (res) => (this.tasks = res),
+      next: (res) => {
+        this.tasks = res;
+        this.applySort();
+      },
       error: () => console.error('Failed to load tasks'),
     });
+  }
+
+  toggleSort() {
+    this.sortByDeadline = !this.sortByDeadline;
+    this.applySort();
+  }
+
+  applySort() {
+    if (this.sortByDeadline) {
+      this.tasks.sort((a, b) => {
+        // Tasks with deadlines first
+        if (a.deadline && !b.deadline) return -1;
+        if (!a.deadline && b.deadline) return 1;
+
+        // If both have deadlines, sort by date ascending
+        if (a.deadline && b.deadline) {
+          return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+        }
+
+        // If neither have deadlines, sort by CreatedAt descending
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+      });
+    } else {
+      // Sort by CreatedAt descending
+      this.tasks.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+      });
+    }
   }
 
   doLogin() {

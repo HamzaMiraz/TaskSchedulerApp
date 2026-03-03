@@ -26,7 +26,9 @@ public class TasksController : ControllerBase
         var tasks = await _db.Tasks
             .AsNoTracking()
             .Where(t => t.UserId == userId.Value)
-            .OrderByDescending(t => t.CreatedAt)
+            .OrderBy(t => t.Deadline == null) // Tasks with deadlines first
+            .ThenBy(t => t.Deadline)          // Soonest deadlines first
+            .ThenByDescending(t => t.CreatedAt)
             .ToListAsync();
         return Ok(tasks);
     }
@@ -123,4 +125,3 @@ public class TasksController : ControllerBase
         return null;
     }
 }
-
