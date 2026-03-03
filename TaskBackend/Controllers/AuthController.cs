@@ -57,8 +57,11 @@ public class AuthController : ControllerBase
 
         var normalized = userName.ToLowerInvariant();
         var user = await _db.Users.FirstOrDefaultAsync(u => u.NormalizedUserName == normalized);
-        if (user == null || !PasswordHash.Verify(password, user.PasswordHash))
-            return Unauthorized(new { message = "Invalid username or password." });
+        if (user == null)
+            return Unauthorized(new { message = "Incorrect username." });
+
+        if (!PasswordHash.Verify(password, user.PasswordHash))
+            return Unauthorized(new { message = "Incorrect Password. Please try again." });
 
         var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
         var session = new UserSession

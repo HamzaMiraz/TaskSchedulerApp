@@ -8,8 +8,11 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer(); // REQUIRED
 builder.Services.AddSwaggerGen(); // REQUIRED
 
+// SQLite or MySQL Connection
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
 builder.Services.AddDbContext<TaskBackend.Data.AppDbContext>(options =>
-    options.UseInMemoryDatabase("TaskTrackerDb"));
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
 builder.Services.AddCors(options =>
 {
@@ -20,6 +23,13 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Automatically create database and tables if they don't exist
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<TaskBackend.Data.AppDbContext>();
+    db.Database.EnsureCreated();
+}
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())

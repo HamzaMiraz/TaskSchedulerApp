@@ -460,9 +460,9 @@ export class App implements OnInit {
         this.message = '';
         this.load();
       },
-      error: () => {
+      error: (err) => {
         this.messageType = 'error';
-        this.message = 'Invalid credentials';
+        this.message = err?.error?.message || 'Invalid credentials';
       },
     });
   }
@@ -505,8 +505,16 @@ export class App implements OnInit {
     };
 
     if (this.newTaskDeadline) {
-      // Ensure it's stored in ISO format
-      newTask.deadline = new Date(this.newTaskDeadline).toISOString();
+      // Create a date without the Z (to represent local time)
+      const localDate = new Date(this.newTaskDeadline);
+      const year = localDate.getFullYear();
+      const month = String(localDate.getMonth() + 1).padStart(2, '0');
+      const day = String(localDate.getDate()).padStart(2, '0');
+      const hours = String(localDate.getHours()).padStart(2, '0');
+      const minutes = String(localDate.getMinutes()).padStart(2, '0');
+      const seconds = String(localDate.getSeconds()).padStart(2, '0');
+
+      newTask.deadline = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
     }
 
     this.service.addTask(newTask).subscribe(() => {
@@ -523,9 +531,12 @@ export class App implements OnInit {
 
     if (t.deadline) {
       const d = new Date(t.deadline);
-      // convert to local datetime-local string
-      d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-      this.editDeadline = d.toISOString().slice(0, 16);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      this.editDeadline = `${year}-${month}-${day}T${hours}:${minutes}`;
     } else {
       this.editDeadline = '';
     }
@@ -550,7 +561,15 @@ export class App implements OnInit {
     if (task) {
       const updatedTask = { ...task, title: this.editTitle };
       if (this.editDeadline) {
-        updatedTask.deadline = new Date(this.editDeadline).toISOString();
+        const localDate = new Date(this.editDeadline);
+        const year = localDate.getFullYear();
+        const month = String(localDate.getMonth() + 1).padStart(2, '0');
+        const day = String(localDate.getDate()).padStart(2, '0');
+        const hours = String(localDate.getHours()).padStart(2, '0');
+        const minutes = String(localDate.getMinutes()).padStart(2, '0');
+        const seconds = String(localDate.getSeconds()).padStart(2, '0');
+
+        updatedTask.deadline = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
       } else {
         updatedTask.deadline = undefined; // clear deadline
       }
