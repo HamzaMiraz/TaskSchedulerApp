@@ -29,6 +29,34 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<TaskBackend.Data.AppDbContext>();
     db.Database.EnsureCreated();
+    
+    // Manually add the Note column to avoid EF Migration conflicts with EnsureCreated
+    try 
+    {
+        db.Database.ExecuteSqlRaw(@"
+            SET @dbname = DATABASE();
+            SET @tablename = 'Tasks';
+            SET @columnname = 'Note';
+            SET @preparedStatement = (SELECT IF(
+              (
+                SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE
+                  (table_schema = @dbname)
+                  AND (table_name = @tablename)
+                  AND (column_name = @columnname)
+              ) > 0,
+              'SELECT 1',
+              CONCAT('ALTER TABLE ', @tablename, ' ADD ', @columnname, ' LONGTEXT;')
+            ));
+            PREPARE alterIfNotExists FROM @preparedStatement;
+            EXECUTE alterIfNotExists;
+            DEALLOCATE PREPARE alterIfNotExists;
+        ");
+    } 
+    catch (Exception ex) 
+    {
+        Console.WriteLine($"Error updating database schema: {ex.Message}");
+    }
 }
 
 // Configure the HTTP request pipeline

@@ -13,7 +13,7 @@ import { AuthService } from './auth.service';
       style="min-height: 100vh; display: flex; flex-direction: column; padding: 40px; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; background: radial-gradient(circle at 0% 0%, #1e293b 0%, #0f172a 100%); color: #f8fafc;"
     >
       <header
-        style="display: flex; align-items: center; justify-content: space-between; padding: 20px 30px; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);"
+        style="display: flex; align-items: center; justify-content: space-between; padding: 20px 30px; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); position: relative; z-index: 1100;"
       >
         <div style="display: flex; align-items: center; gap: 15px;">
           <div
@@ -174,44 +174,41 @@ import { AuthService } from './auth.service';
 
       <main
         *ngIf="isLoggedIn"
-        style="display: grid; grid-template-columns: 1fr 2.5fr; gap: 30px; max-width: 1300px; margin: 0 auto; width: 100%;"
+        style="display: grid; grid-template-columns: 2.5fr 1fr; gap: 30px; max-width: 1550px; margin: 0 auto; width: 100%; align-items: start;"
       >
-        <section>
-          <div
-            style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1)); border: 1px solid rgba(255, 255, 255, 0.1); padding: 30px; border-radius: 24px; text-align: center;"
-          >
-            <h3 style="margin: 0; color: #94a3b8; font-size: 14px;">Productivity Score</h3>
-            <div
-              style="font-size: 48px; font-weight: 800; margin: 15px 0; background: linear-gradient(to right, #0ea5e9, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"
-            >
-              {{ tasks.length }}
-            </div>
-            <p style="margin: 0; color: #64748b; font-size: 12px;">Active Tasks</p>
-          </div>
-        </section>
-
+        <!-- LEFT: MAIN TASK WORKSPACE (Task Creation & List) -->
         <section
           style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 24px; padding: 30px; min-height: 500px;"
         >
-          <div style="margin-bottom: 30px; display: flex; gap: 15px;">
-            <input
-              [(ngModel)]="newTaskTitle"
-              placeholder="Enter task and press enter..."
-              (keyup.enter)="saveTask()"
-              style="flex: 1; padding: 16px 25px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: white; font-size: 16px; outline: none;"
-            />
-            <input
-              type="datetime-local"
-              [(ngModel)]="newTaskDeadline"
-              [min]="minDateTime"
-              style="padding: 16px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: #94a3b8; font-size: 14px; outline: none; font-family: inherit;"
-            />
-            <button
-              (click)="saveTask()"
-              style="background: linear-gradient(135deg, #0ea5e9, #6366f1); color: white; border: none; padding: 0 25px; border-radius: 20px; font-weight: 600; cursor: pointer;"
-            >
-              Add Task
-            </button>
+          <div style="margin-bottom: 30px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; gap: 15px;">
+              <input
+                [(ngModel)]="newTaskTitle"
+                placeholder="Enter task and press enter..."
+                (keyup.enter)="saveTask()"
+                style="flex: 1; padding: 16px 25px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: white; font-size: 16px; outline: none;"
+              />
+              <input
+                type="datetime-local"
+                [(ngModel)]="newTaskDeadline"
+                [min]="minDateTime"
+                style="padding: 16px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: #94a3b8; font-size: 14px; outline: none; font-family: inherit;"
+              />
+              <button
+                (click)="saveTask()"
+                style="background: linear-gradient(135deg, #0ea5e9, #6366f1); color: white; border: none; padding: 0 25px; border-radius: 20px; font-weight: 600; cursor: pointer;"
+              >
+                Add Task
+              </button>
+            </div>
+            <div>
+              <input
+                [(ngModel)]="newTaskNote"
+                placeholder="Add an optional note..."
+                (keyup.enter)="saveTask()"
+                style="width: 100%; padding: 12px 25px; background: rgba(0,0,0,0.1); border: 1px dashed rgba(255,255,255,0.2); border-radius: 16px; color: #cbd5e1; font-size: 14px; outline: none; box-sizing: border-box;"
+              />
+            </div>
           </div>
 
           <div 
@@ -234,13 +231,16 @@ import { AuthService } from './auth.service';
             </button>
           </div>
 
-
           <div
             *ngFor="let t of tasks"
-            style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 15px; padding: 20px; border-radius: 20px; display: flex; align-items: center; gap: 18px;"
+            (click)="selectTask(t)"
+            [id]="'task-' + t.id"
+            [style.border-color]="selectedTaskId === t.id ? '#3b82f6' : 'rgba(255, 255, 255, 0.05)'"
+            [style.background]="selectedTaskId === t.id ? 'rgba(59, 130, 246, 0.08)' : 'rgba(255, 255, 255, 0.03)'"
+            style="border-width: 1px; border-style: solid; margin-bottom: 15px; padding: 20px; border-radius: 20px; display: flex; align-items: center; gap: 18px; cursor: pointer; transition: all 0.2s;"
           >
             <div
-              (click)="toggleComplete(t)"
+              (click)="toggleComplete(t); $event.stopPropagation()"
               [style.background]="t.isCompleted ? '#22c55e' : 'transparent'"
               style="width: 26px; height: 26px; border: 2px solid #22c55e; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px;"
             >
@@ -253,6 +253,7 @@ import { AuthService } from './auth.service';
                   [(ngModel)]="editTitle"
                   (keyup.enter)="saveEdit()"
                   (keyup.escape)="cancelEdit()"
+                  (click)="$event.stopPropagation()"
                   style="width: 100%; background: #0f172a; border: 1px solid #3b82f6; padding: 8px 12px; border-radius: 8px; color: white; outline: none; margin-bottom: 5px;"
                 />
                 <div style="display: flex; gap: 10px; margin-bottom: 10px;">
@@ -260,11 +261,12 @@ import { AuthService } from './auth.service';
                     type="datetime-local"
                     [(ngModel)]="editDeadline"
                     [min]="minDateTime"
+                    (click)="$event.stopPropagation()"
                     style="flex: 1; background: #0f172a; border: 1px solid rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 8px; color: #94a3b8; outline: none; font-size: 12px;"
                   />
                   <button
                     *ngIf="editDeadline"
-                    (click)="clearEditDeadline()"
+                    (click)="clearEditDeadline(); $event.stopPropagation()"
                     style="background: transparent; border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; padding: 0 10px; border-radius: 8px; font-size: 11px; cursor: pointer;"
                   >
                     Clear Deadline
@@ -272,13 +274,13 @@ import { AuthService } from './auth.service';
                 </div>
                 <div style="display: flex; gap: 10px;">
                   <button
-                    (click)="saveEdit()"
+                    (click)="saveEdit(); $event.stopPropagation()"
                     style="background: #0ea5e9; border: none; color: white; padding: 4px 12px; border-radius: 6px; font-size: 11px; cursor: pointer;"
                   >
                     Save
                   </button>
                   <button
-                    (click)="cancelEdit()"
+                    (click)="cancelEdit(); $event.stopPropagation()"
                     style="background: #475569; border: none; color: white; padding: 4px 12px; border-radius: 6px; font-size: 11px; cursor: pointer;"
                   >
                     Cancel
@@ -290,8 +292,7 @@ import { AuthService } from './auth.service';
                 <p
                   [style.text-decoration]="t.isCompleted ? 'line-through' : 'none'"
                   [style.color]="t.isCompleted ? '#64748b' : '#f8fafc'"
-                  style="margin: 0; font-size: 16px; font-weight: 500; cursor: pointer;"
-                  (click)="startEdit(t)"
+                  style="margin: 0; font-size: 16px; font-weight: 500;"
                 >
                   {{ t.title }}
                 </p>
@@ -312,16 +313,16 @@ import { AuthService } from './auth.service';
               </ng-template>
             </div>
 
-            <div style="display: flex; gap: 10px;">
+            <div style="display: flex; flex-direction: column; gap: 10px; padding-left: 10px; border-left: 1px solid rgba(255,255,255,0.05);">
               <button
                 *ngIf="editingId !== t.id"
-                (click)="startEdit(t)"
+                (click)="startEdit(t); $event.stopPropagation()"
                 style="background: transparent; border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; padding: 6px 10px; border-radius: 10px; cursor: pointer; font-size: 12px;"
               >
                 Edit
               </button>
               <button
-                (click)="removeTask(t.id!)"
+                (click)="removeTask(t.id!); $event.stopPropagation()"
                 style="background: rgba(239, 68, 68, 0.1); border: none; color: #ef4444; width: 34px; height: 34px; border-radius: 10px; cursor: pointer;"
               >
                 🗑️
@@ -337,6 +338,84 @@ import { AuthService } from './auth.service';
             <p style="font-size: 14px;">No tasks found.</p>
           </div>
         </section>
+
+        <!-- RIGHT: SIDEBAR AREA -->
+        <aside style="display: flex; flex-direction: column; gap: 30px; position: sticky; top: 40px;">
+          <!-- PRODUCTIVITY SCORE (WAS TOP PER REQUEST) -->
+          <div
+            style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1)); border: 1px solid rgba(255, 255, 255, 0.1); padding: 30px; border-radius: 24px; text-align: center;"
+          >
+            <h3 style="margin: 0; color: #94a3b8; font-size: 14px;">Productivity Score</h3>
+            <div
+              style="font-size: 48px; font-weight: 800; margin: 15px 0; background: linear-gradient(to right, #0ea5e9, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"
+            >
+              {{ tasks.length }}
+            </div>
+            <p style="margin: 0; color: #64748b; font-size: 12px;">Active Tasks</p>
+          </div>
+
+          <!-- NOTE BOX (WAS BOTTOM PER REQUEST, BIGGER) -->
+          <div
+            style="background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1); padding: 25px; border-radius: 24px; min-height: 450px; display: flex; flex-direction: column;"
+          >
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+              <span style="font-size: 18px;">📝</span>
+              <h3 style="margin: 0; color: #f8fafc; font-size: 16px; font-weight: 600;">Note</h3>
+            </div>
+
+            <div *ngIf="getSelectedTask() as selectedTask; else noSelectedTask" style="flex: 1; display: flex; flex-direction: column;">
+              <h4 style="margin: 0 0 15px 0; font-size: 13px; color: #3b82f6; text-transform: uppercase; letter-spacing: 0.5px; border-left: 3px solid #3b82f6; padding-left: 10px;">{{ selectedTask.title }}</h4>
+              
+              <ng-container *ngIf="editingNoteId === selectedTask.id; else displayNoteMode">
+                <textarea
+                  [(ngModel)]="editNoteContent"
+                  placeholder="Type note here..."
+                  style="width: 100%; flex: 1; min-height: 250px; background: rgba(0,0,0,0.3); border: 1px solid #3b82f6; padding: 15px; border-radius: 16px; color: white; outline: none; margin-bottom: 15px; font-size: 14px; resize: none; box-sizing: border-box; line-height: 1.6;"
+                ></textarea>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                  <button
+                    (click)="saveEditNote(selectedTask)"
+                    style="background: #0ea5e9; border: none; color: white; padding: 10px 25px; border-radius: 12px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s;"
+                  >
+                    Save Changes
+                  </button>
+                  <button
+                    (click)="cancelEditNote()"
+                    style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: white; padding: 10px 25px; border-radius: 12px; font-size: 12px; cursor: pointer;"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </ng-container>
+
+              <ng-template #displayNoteMode>
+                <div 
+                  *ngIf="selectedTask.note" 
+                  style="flex: 1; font-size: 14px; color: #cbd5e1; margin-bottom: 20px; white-space: pre-wrap; line-height: 1.6; background: rgba(255,255,255,0.02); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.02); overflow-y: auto;"
+                >
+                  {{ selectedTask.note }}
+                </div>
+                <div *ngIf="!selectedTask.note" style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px; text-align: center; background: rgba(255,255,255,0.02); border-radius: 16px; border: 1px dashed rgba(255,255,255,0.1); margin-bottom: 20px;">
+                   <p style="font-size: 12px; color: #475569; font-style: italic; margin: 0;">No note attached to this task.</p>
+                </div>
+                
+                <button
+                  (click)="startEditNote(selectedTask)"
+                  style="width: 100%; background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(99, 102, 241, 0.2)); border: 1px solid rgba(14, 165, 233, 0.4); color: #7dd3fc; padding: 14px; border-radius: 14px; cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.3s;"
+                >
+                  {{ selectedTask.note ? 'Edit Note' : 'Add Note' }}
+                </button>
+              </ng-template>
+            </div>
+
+            <ng-template #noSelectedTask>
+              <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #475569; padding: 20px;">
+                <p style="font-size: 30px; margin-bottom: 15px;">🔍</p>
+                <p style="font-size: 13px; margin: 0;">Click a task to view the Note.</p>
+              </div>
+            </ng-template>
+          </div>
+        </aside>
       </main>
     </div>
     <style>
@@ -363,6 +442,11 @@ export class App implements OnInit {
   editingId: number | null = null;
   editTitle: string = '';
   editDeadline: string = '';
+
+  selectedTaskId: number | null = null;
+  editingNoteId: number | null = null;
+  editNoteContent: string = '';
+  newTaskNote: string = '';
 
   newTaskDeadline: string = '';
   minDateTime: string = '';
@@ -406,7 +490,16 @@ export class App implements OnInit {
 
   handleExtendNotification(t: TodoTask) {
     this.showNotifications = false;
+    this.selectTask(t);
     this.startEdit(t);
+
+    // Smooth scroll to the task item in the list
+    setTimeout(() => {
+      const el = document.getElementById('task-' + t.id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
   }
 
   load() {
@@ -414,6 +507,10 @@ export class App implements OnInit {
       next: (res) => {
         this.tasks = res;
         this.applySort();
+        // Keep selection if it exists and task still exists
+        if (this.selectedTaskId && !this.tasks.find(t => t.id === this.selectedTaskId)) {
+          this.selectedTaskId = null;
+        }
       },
       error: () => console.error('Failed to load tasks'),
     });
@@ -451,6 +548,15 @@ export class App implements OnInit {
     }
   }
 
+  selectTask(t: TodoTask) {
+    this.selectedTaskId = t.id ?? null;
+    this.cancelEditNote(); // Reset editing state when switching tasks
+  }
+
+  getSelectedTask(): TodoTask | undefined {
+    return this.tasks.find(t => t.id === this.selectedTaskId);
+  }
+
   doLogin() {
     if (!this.userName || !this.password) return;
     this.auth.login(this.userName, this.password).subscribe({
@@ -486,6 +592,7 @@ export class App implements OnInit {
     this.auth.logout().subscribe(() => {
       this.isLoggedIn = false;
       this.tasks = [];
+      this.selectedTaskId = null;
       this.loggedInUserName = '';
     });
   }
@@ -501,7 +608,8 @@ export class App implements OnInit {
 
     const newTask: TodoTask = {
       title: this.newTaskTitle,
-      isCompleted: false
+      isCompleted: false,
+      note: this.newTaskNote
     };
 
     if (this.newTaskDeadline) {
@@ -517,10 +625,13 @@ export class App implements OnInit {
       newTask.deadline = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
     }
 
-    this.service.addTask(newTask).subscribe(() => {
+    this.service.addTask(newTask).subscribe((res) => {
       this.newTaskTitle = '';
       this.newTaskDeadline = '';
+      this.newTaskNote = '';
       this.load();
+      // Auto select the new task
+      if (res && res.id) this.selectedTaskId = res.id;
     });
   }
 
@@ -587,12 +698,35 @@ export class App implements OnInit {
     this.editDeadline = '';
   }
 
+  startEditNote(t: TodoTask) {
+    if (!this.isLoggedIn) return;
+    this.editingNoteId = t.id ?? null;
+    this.editNoteContent = t.note || '';
+  }
+
+  cancelEditNote() {
+    this.editingNoteId = null;
+    this.editNoteContent = '';
+  }
+
+  saveEditNote(t: TodoTask) {
+    if (this.editingNoteId == null) return;
+    const updatedTask = { ...t, note: this.editNoteContent };
+    this.service.updateTask(updatedTask).subscribe(() => {
+      this.load();
+      this.cancelEditNote();
+    });
+  }
+
   toggleComplete(t: TodoTask) {
     this.service.updateTask({ ...t, isCompleted: !t.isCompleted }).subscribe(() => this.load());
   }
 
   removeTask(id: number) {
-    this.service.deleteTask(id).subscribe(() => this.load());
+    this.service.deleteTask(id).subscribe(() => {
+      if (this.selectedTaskId === id) this.selectedTaskId = null;
+      this.load();
+    });
   }
 
   formatCreatedAt(dateString?: string): string {

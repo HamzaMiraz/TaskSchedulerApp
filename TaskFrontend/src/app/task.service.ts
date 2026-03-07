@@ -9,6 +9,7 @@ export interface TodoTask {
   isCompleted: boolean;
   createdAt?: string;
   deadline?: string;
+  note?: string;
 }
 
 @Injectable({

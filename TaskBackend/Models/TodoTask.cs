@@ -8,4 +8,5 @@ public class TodoTask
     public bool IsCompleted { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? Deadline { get; set; }
+    public string? Note { get; set; }
 }

@@ -84,6 +84,7 @@ public class TasksController : ControllerBase
         existing.Title = updatedTask.Title ?? string.Empty;
         existing.IsCompleted = updatedTask.IsCompleted;
         existing.Deadline = updatedTask.Deadline;
+        existing.Note = updatedTask.Note;
         
         await _db.SaveChangesAsync();
         return NoContent();
